@@ -4,10 +4,23 @@ motionScript.type = 'module'
 motionScript.textContent = `
   import { animate, stagger } from "https://cdn.jsdelivr.net/npm/motion@latest/+esm"
 
+  const preloader = document.querySelector('.preloader')
   const lines = document.querySelectorAll('.hero-line')
   const cards = document.querySelectorAll('.console-card')
   const nums = document.querySelectorAll('.console-number')
   const track = document.querySelector('.carousel-track')
+  const carouselShell = document.querySelector('.carousel-shell')
+  const scrollUp = document.querySelector('.scroll-up')
+  const revealBlocks = document.querySelectorAll('.reveal-block')
+  const galleryItems = document.querySelectorAll('.gallery-item')
+  const lightbox = document.querySelector('.lightbox')
+  const lightboxContent = document.querySelector('.lightbox-content')
+  const lightboxImg = document.querySelector('.lightbox img')
+  const lightboxTitle = document.querySelector('.lightbox-text h3')
+  const lightboxDesc = document.querySelector('.lightbox-text p')
+  const lightboxClose = document.querySelector('.lightbox-close')
+
+  let introStarted = false
 
   function buildNumber(node) {
     const value = node.dataset.value.trim()
@@ -53,64 +66,126 @@ motionScript.textContent = `
     })
   }
 
-  nums.forEach(buildNumber)
+  function animateNumbers() {
+    nums.forEach((num, numIndex) => {
+      const reels = num.querySelectorAll('.num-reel')
+      const statics = num.querySelectorAll('.num-static')
+      const baseDelay = .3 + numIndex * .18
 
-  animate(lines, {
-    opacity: [0, 1],
-    y: [24, 0]
-  }, {
-    duration: .78,
-    delay: stagger(.11),
-    ease: [0.22, 1, 0.36, 1]
-  })
+      reels.forEach((reel, index) => {
+        const finalStep = Number(reel.dataset.finalStep)
 
-  animate(cards, {
-    opacity: [0, 1],
-    y: [20, 0]
-  }, {
-    duration: .74,
-    delay: stagger(.12, { startDelay: .74 }),
-    ease: [0.22, 1, 0.36, 1]
-  })
+        animate(reel, {
+          y: ['0em', '-' + finalStep + 'em']
+        }, {
+          duration: 1.18,
+          delay: baseDelay + index * .04,
+          ease: [0.17, 0.92, 0.22, 1]
+        })
+      })
 
-  nums.forEach((num, numIndex) => {
-    const reels = num.querySelectorAll('.num-reel')
-    const statics = num.querySelectorAll('.num-static')
-    const baseDelay = 1.02 + numIndex * .18
-
-    reels.forEach((reel, index) => {
-      const finalStep = Number(reel.dataset.finalStep)
-
-      animate(reel, {
-        y: ['0em', '-' + finalStep + 'em']
+      animate(statics, {
+        opacity: [0, 1],
+        y: ['.45em', '0em']
       }, {
-        duration: 1.08,
-        delay: baseDelay + index * .035,
-        ease: [0.18, 0.95, 0.24, 1]
+        duration: .62,
+        delay: stagger(.035, { startDelay: baseDelay + .12 }),
+        ease: [0.22, 1, 0.36, 1]
       })
     })
+  }
 
-    animate(statics, {
+  function startIntro() {
+    if (introStarted) return
+    introStarted = true
+
+    animate(lines, {
       opacity: [0, 1],
-      y: ['.45em', '0em']
+      y: [24, 0]
     }, {
-      duration: .58,
-      delay: stagger(.03, { startDelay: baseDelay + .1 }),
+      duration: .78,
+      delay: stagger(.11),
       ease: [0.22, 1, 0.36, 1]
     })
-  })
 
-  let carouselMove
+    animate(cards, {
+      opacity: [0, 1],
+      y: [20, 0]
+    }, {
+      duration: .74,
+      delay: stagger(.12, { startDelay: .74 }),
+      ease: [0.22, 1, 0.36, 1]
+    }).finished.then(animateNumbers)
+  }
 
-  function runCarousel() {
-    if (!track) return
-
-    if (carouselMove) {
-      carouselMove.cancel()
+  function hidePreloader() {
+    if (!preloader) {
+      startIntro()
+      return
     }
 
-    const gap = parseFloat(getComputedStyle(track).gap) || 0
-    const distance = track.scrollWidth / 2 + gap / 2
+    animate(preloader, {
+      opacity: [1, 0]
+    }, {
+      duration: .55,
+      ease: [0.22, 1, 0.36, 1]
+    }).finished.then(() => {
+      preloader.remove()
+      startIntro()
+    })
+  }
+
+  nums.forEach(buildNumber)
+
+  window.addEventListener('load', () => {
+    setTimeout(hidePreloader, 450)
+  })
+
+  setTimeout(hidePreloader, 2600)
+
+  let carouselMove
+  let carouselStarted = false
+  let lastWidth = window.innerWidth
+  let originalCards = []
+
+  function saveOriginalCards() {
+    if (!track) return
+    originalCards = Array.from(track.children).map(card => card.cloneNode(true))
+  }
+
+  function buildInfiniteTrack() {
+    if (!track || !originalCards.length) return 0
+
+    track.innerHTML = ''
+
+    originalCards.forEach(card => {
+      track.appendChild(card.cloneNode(true))
+    })
+
+    originalCards.forEach(card => {
+      track.appendChild(card.cloneNode(true))
+    })
+
+    let guard = 0
+
+    while (track.scrollWidth < window.innerWidth * 3 && guard < 14) {
+      originalCards.forEach(card => {
+        track.appendChild(card.cloneNode(true))
+      })
+
+      guard++
+    }
+
+    const firstClone = track.children[originalCards.length]
+    return firstClone ? firstClone.offsetLeft : track.scrollWidth / 2
+  }
+
+  function startCarousel() {
+    if (!track || carouselStarted || !originalCards.length) return
+
+    carouselStarted = true
+
+    const distance = buildInfiniteTrack()
 
     carouselMove = animate(track, {
       x: [0, -distance]
@@ -121,8 +196,232 @@ motionScript.textContent = `
     })
   }
 
-  runCarousel()
-  window.addEventListener('resize', runCarousel)
+  function restartCarousel() {
+    if (!track || !carouselStarted) return
+
+    if (carouselMove) {
+      carouselMove.cancel()
+    }
+
+    carouselStarted = false
+    track.style.transform = ''
+    startCarousel()
+  }
+
+  function showCarousel() {
+    animate(carouselShell, {
+      opacity: [0, 1],
+      y: [28, 0]
+    }, {
+      duration: .8,
+      ease: [0.22, 1, 0.36, 1]
+    })
+
+    setTimeout(startCarousel, 260)
+  }
+
+  saveOriginalCards()
+
+  if (carouselShell) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          showCarousel()
+          observer.unobserve(entry.target)
+        }
+      })
+    }, {
+      threshold: .25
+    })
+
+    observer.observe(carouselShell)
+  }
+
+  if (revealBlocks.length) {
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animate(entry.target, {
+            opacity: [0, 1],
+            y: [32, 0]
+          }, {
+            duration: .8,
+            ease: [0.22, 1, 0.36, 1]
+          })
+
+          revealObserver.unobserve(entry.target)
+        }
+      })
+    }, {
+      threshold: .22
+    })
+
+    revealBlocks.forEach(block => revealObserver.observe(block))
+  }
+
+  let resizeTimer
+
+  window.addEventListener('resize', () => {
+    const currentWidth = window.innerWidth
+
+    if (Math.abs(currentWidth - lastWidth) < 80) return
+
+    lastWidth = currentWidth
+
+    clearTimeout(resizeTimer)
+
+    resizeTimer = setTimeout(() => {
+      restartCarousel()
+    }, 260)
+  })
+
+  let scrollUpVisible = false
+  let scrollUpAnimation
+
+  function showScrollUp() {
+    if (!scrollUp || scrollUpVisible) return
+
+    scrollUpVisible = true
+    scrollUp.classList.add('is-active')
+
+    if (scrollUpAnimation) scrollUpAnimation.cancel()
+
+    scrollUpAnimation = animate(scrollUp, {
+      opacity: [0, 1],
+      y: [14, 0]
+    }, {
+      duration: .38,
+      ease: [0.22, 1, 0.36, 1]
+    })
+  }
+
+  function hideScrollUpButton() {
+    if (!scrollUp || !scrollUpVisible) return
+
+    scrollUpVisible = false
+    scrollUp.classList.remove('is-active')
+
+    if (scrollUpAnimation) scrollUpAnimation.cancel()
+
+    scrollUpAnimation = animate(scrollUp, {
+      opacity: [1, 0],
+      y: [0, 14]
+    }, {
+      duration: .28,
+      ease: [0.22, 1, 0.36, 1]
+    })
+  }
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 520) {
+      showScrollUp()
+    } else {
+      hideScrollUpButton()
+    }
+  }, {
+    passive: true
+  })
+
+  if (scrollUp) {
+    scrollUp.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      })
+    })
+  }
+
+  function lockPage() {
+    const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth
+
+    document.body.style.setProperty('--lock-padding', scrollBarWidth + 'px')
+    document.body.classList.add('lightbox-open')
+  }
+
+  function unlockPage() {
+    document.body.classList.remove('lightbox-open')
+    document.body.style.removeProperty('--lock-padding')
+  }
+
+  function openLightbox(src, alt, title, desc) {
+    if (!lightbox || !lightboxImg || !lightboxContent) return
+
+    lightboxImg.src = src
+    lightboxImg.alt = alt || ''
+    lightboxTitle.textContent = title || 'Image'
+    lightboxDesc.textContent = desc || ''
+    lightbox.classList.add('is-open')
+    lightbox.setAttribute('aria-hidden', 'false')
+    lockPage()
+
+    animate(lightbox, {
+      opacity: [0, 1]
+    }, {
+      duration: .26,
+      ease: [0.22, 1, 0.36, 1]
+    })
+
+    animate(lightboxContent, {
+      opacity: [0, 1],
+      scale: [.96, 1]
+    }, {
+      duration: .34,
+      ease: [0.22, 1, 0.36, 1]
+    })
+  }
+
+  function closeLightbox() {
+    if (!lightbox || !lightboxContent || !lightboxImg || !lightbox.classList.contains('is-open')) return
+
+    animate(lightboxContent, {
+      opacity: [1, 0],
+      scale: [1, .96]
+    }, {
+      duration: .2,
+      ease: [0.22, 1, 0.36, 1]
+    })
+
+    animate(lightbox, {
+      opacity: [1, 0]
+    }, {
+      duration: .24,
+      ease: [0.22, 1, 0.36, 1]
+    }).finished.then(() => {
+      lightbox.classList.remove('is-open')
+      lightbox.setAttribute('aria-hidden', 'true')
+      unlockPage()
+      lightboxImg.src = ''
+    })
+  }
+
+  galleryItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const img = item.querySelector('img')
+      const src = item.dataset.full || img.src
+      const title = item.dataset.title || img.alt
+      const desc = item.dataset.desc || ''
+
+      openLightbox(src, img.alt, title, desc)
+    })
+  })
+
+  if (lightboxClose) {
+    lightboxClose.addEventListener('click', closeLightbox)
+  }
+
+  if (lightbox) {
+    lightbox.addEventListener('click', event => {
+      if (event.target === lightbox) {
+        closeLightbox()
+      }
+    })
+  }
+
+  window.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      closeLightbox()
+    }
+  })
 `
 
 document.head.appendChild(motionScript)

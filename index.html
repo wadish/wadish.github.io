@@ -13,6 +13,15 @@
 </head>
 <body>
 
+  <div class="preloader">
+    <div class="preloader-mark">
+      <svg viewBox="0 0 220 110" aria-hidden="true">
+        <path class="infinity-base" d="M110 55C86 20 54 18 34 38C14 58 20 92 50 92C76 92 92 68 110 55C128 42 144 18 170 18C200 18 206 52 186 72C166 92 134 90 110 55Z"/>
+        <path class="infinity-line" d="M110 55C86 20 54 18 34 38C14 58 20 92 50 92C76 92 92 68 110 55C128 42 144 18 170 18C200 18 206 52 186 72C166 92 134 90 110 55Z"/>
+      </svg>
+    </div>
+  </div>
+
   <main class="hero">
     <section class="hero-text">
       <h1 class="hero-line">wadishTheCreator</h1>
@@ -88,50 +97,98 @@
               <img src="media/header_longeyed.jpg" alt="LONGEYED PROJ.">
             </div>
           </a>
-
-          <a class="project-card" href="#">
-            <div class="project-top">
-              <span>›</span>
-              <p>RADIO STALKER (2024-2025)</p>
-            </div>
-            <div class="project-media">
-              <img src="media/header_radiostalker.jpg" alt="RADIO STALKER">
-            </div>
-          </a>
-
-          <a class="project-card" href="#">
-            <div class="project-top">
-              <span>›</span>
-              <p>Code Nodes (2026)</p>
-            </div>
-            <div class="project-media">
-              <img src="media/header_codenodes.jpg" alt="Code Nodes">
-            </div>
-          </a>
-
-          <a class="project-card" href="#">
-            <div class="project-top">
-              <span>›</span>
-              <p>EXTERMINATION SHIP (2024)</p>
-            </div>
-            <div class="project-media">
-              <img src="media/header_exterminationship.jpg" alt="EXTERMINATION SHIP">
-            </div>
-          </a>
-
-          <a class="project-card" href="#">
-            <div class="project-top">
-              <span>›</span>
-              <p>LONGEYED PROJ. (2022)</p>
-            </div>
-            <div class="project-media">
-              <img src="media/header_longeyed.jpg" alt="LONGEYED PROJ.">
-            </div>
-          </a>
         </div>
       </div>
     </div>
   </section>
+
+  <section class="project-detail">
+    <div class="project-detail-inner reveal-block">
+      <div class="project-copy">
+        <h2>LONGEYED PROJ. <span>(2022)</span></h2>
+
+        <p>
+          This is my first commercial game that was released.
+          In 2022, when Russia invaded Ukraine, I was looking 
+          for something that would help me not think about war. 
+          Back in those days, "The Mandela Catalogue" was popular, 
+          and I thought, what if I try to create something similar, 
+          but a game. 
+        </p>
+
+        <p>
+          The game was created in 2 weeks, with zero budget. 
+          All voice acting (which is not as good as I wanted) 
+          was made for free by volunteers.
+        </p>
+      </div>
+
+      <div class="project-side">
+        <div class="mini-gallery">
+          <button class="gallery-item gallery-square" type="button" data-full="media/longeyed_img1.jpg" data-title="The first screenshot of the game" data-desc="This is the first ever screenshot of the game. It shows the first version of the main menu.">
+            <img src="media/longeyed_img1.jpg" alt="LONGEYED PROJ. image 1">
+          </button>
+
+          <button class="gallery-item gallery-tall" type="button" data-full="media/longeyed_img2.jpg" data-title="Main reference" data-desc="This image shows fragment from &laquo;The Mandela Catalogue.&raquo; This show was the main reference for the game idea.">
+            <img src="media/longeyed_img2.jpg" alt="LONGEYED PROJ. image 2">
+          </button>
+
+          <button class="gallery-item gallery-wide" type="button" data-full="media/longeyed_img3.jpg" data-title="Jumpscare minigame" data-desc="I've made my own variation of an old horror maze, but as a minigame in the LONGEYED.">
+            <img src="media/longeyed_img3.jpg" alt="LONGEYED PROJ. image 3">
+          </button>
+        </div>
+
+        <div class="steam-widget">
+          <iframe src="https://store.steampowered.com/widget/2175800/?t=LONGEYED%20ON%20STEAM" frameborder="0" width="646" height="190"></iframe>
+        </div>
+      </div>
+
+      <div class="roadmap">
+        <div class="roadmap-stage roadmap-done">
+          <span></span>
+          <p>Idea</p>
+        </div>
+
+        <div class="roadmap-stage roadmap-done">
+          <span></span>
+          <p>Beta</p>
+        </div>
+
+        <div class="roadmap-stage roadmap-done">
+          <span></span>
+          <p>Pre-release</p>
+        </div>
+
+        <div class="roadmap-stage roadmap-current">
+          <span></span>
+          <p>Released</p>
+        </div>
+
+        <svg viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true">
+          <path class="roadmap-base" d="M70 66 C170 40 240 40 320 66 C400 92 500 92 580 66 C700 28 820 28 930 62"/>
+          <path class="roadmap-progress" d="M70 66 C170 40 240 40 320 66 C400 92 500 92 580 66 C700 28 820 28 930 62"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <div class="lightbox" aria-hidden="true">
+    <button class="lightbox-close" type="button" aria-label="Close image">×</button>
+
+    <div class="lightbox-content">
+      <aside class="lightbox-text">
+        <span>› image note</span>
+        <h3></h3>
+        <p></p>
+      </aside>
+
+      <img src="" alt="">
+    </div>
+  </div>
+
+  <button class="scroll-up" type="button" aria-label="Scroll to top">
+    ↑
+  </button>
 
   <script src="js/script.js"></script>
 </body>
