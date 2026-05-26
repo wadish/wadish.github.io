@@ -341,17 +341,21 @@ h2 {
 }
 
 .project-media {
+  height: clamp(152px, 13vw, 196px);
   padding: 10px;
   background: var(--surface);
+  display: grid;
+  place-items: center;
 }
 
 .project-media img {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 3px;
   border: 1px solid rgba(90, 118, 80, .17);
+  background: #040503;
   opacity: .97;
   transition: opacity .22s ease, filter .22s ease;
 }
@@ -818,6 +822,7 @@ h2 {
   }
 
   .project-media {
+    height: 176px;
     padding: 8px;
   }
 

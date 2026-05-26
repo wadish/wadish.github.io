@@ -1,9 +1,4 @@
-const motionScript = document.createElement('script')
-
-motionScript.type = 'module'
-motionScript.textContent = `
-  import { animate, stagger } from "https://cdn.jsdelivr.net/npm/motion@latest/+esm"
-
+import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagger }) => {
   const preloader = document.querySelector('.preloader')
   const lines = document.querySelectorAll('.hero-line')
   const cards = document.querySelectorAll('.console-card')
@@ -21,6 +16,7 @@ motionScript.textContent = `
   const lightboxClose = document.querySelector('.lightbox-close')
 
   let introStarted = false
+  let numbersStarted = false
 
   function buildNumber(node) {
     const value = node.dataset.value.trim()
@@ -28,12 +24,12 @@ motionScript.textContent = `
     node.setAttribute('aria-label', value)
 
     const chars = value.split('')
-    const digitsOnly = chars.filter(char => /\\d/.test(char))
+    const digitsOnly = chars.filter(char => /\d/.test(char))
     const totalDigits = digitsOnly.length
     let digitIndex = 0
 
     chars.forEach(char => {
-      if (/\\d/.test(char)) {
+      if (/\d/.test(char)) {
         const reverseIndex = totalDigits - digitIndex - 1
         const extraTurns = Math.max(1, Math.min(3, Math.floor(reverseIndex / 2) + 1))
         const target = Number(char)
@@ -67,10 +63,13 @@ motionScript.textContent = `
   }
 
   function animateNumbers() {
+    if (numbersStarted) return
+    numbersStarted = true
+
     nums.forEach((num, numIndex) => {
       const reels = num.querySelectorAll('.num-reel')
       const statics = num.querySelectorAll('.num-static')
-      const baseDelay = .3 + numIndex * .18
+      const baseDelay = numIndex * .1
 
       reels.forEach((reel, index) => {
         const finalStep = Number(reel.dataset.finalStep)
@@ -78,8 +77,8 @@ motionScript.textContent = `
         animate(reel, {
           y: ['0em', '-' + finalStep + 'em']
         }, {
-          duration: 1.18,
-          delay: baseDelay + index * .04,
+          duration: 1.12,
+          delay: baseDelay + index * .032,
           ease: [0.17, 0.92, 0.22, 1]
         })
       })
@@ -88,8 +87,8 @@ motionScript.textContent = `
         opacity: [0, 1],
         y: ['.45em', '0em']
       }, {
-        duration: .62,
-        delay: stagger(.035, { startDelay: baseDelay + .12 }),
+        duration: .5,
+        delay: stagger(.025, { startDelay: baseDelay + .08 }),
         ease: [0.22, 1, 0.36, 1]
       })
     })
@@ -103,19 +102,21 @@ motionScript.textContent = `
       opacity: [0, 1],
       y: [24, 0]
     }, {
-      duration: .78,
-      delay: stagger(.11),
+      duration: .72,
+      delay: stagger(.09),
       ease: [0.22, 1, 0.36, 1]
     })
 
     animate(cards, {
       opacity: [0, 1],
-      y: [20, 0]
+      y: [18, 0]
     }, {
-      duration: .74,
-      delay: stagger(.12, { startDelay: .74 }),
+      duration: .58,
+      delay: stagger(.09, { startDelay: .36 }),
       ease: [0.22, 1, 0.36, 1]
-    }).finished.then(animateNumbers)
+    })
+
+    setTimeout(animateNumbers, 650)
   }
 
   function hidePreloader() {
@@ -127,7 +128,7 @@ motionScript.textContent = `
     animate(preloader, {
       opacity: [1, 0]
     }, {
-      duration: .55,
+      duration: .5,
       ease: [0.22, 1, 0.36, 1]
     }).finished.then(() => {
       preloader.remove()
@@ -138,10 +139,10 @@ motionScript.textContent = `
   nums.forEach(buildNumber)
 
   window.addEventListener('load', () => {
-    setTimeout(hidePreloader, 450)
+    setTimeout(hidePreloader, 300)
   })
 
-  setTimeout(hidePreloader, 2600)
+  setTimeout(hidePreloader, 2200)
 
   let carouselMove
   let carouselStarted = false
@@ -177,6 +178,7 @@ motionScript.textContent = `
     }
 
     const firstClone = track.children[originalCards.length]
+
     return firstClone ? firstClone.offsetLeft : track.scrollWidth / 2
   }
 
@@ -422,6 +424,4 @@ motionScript.textContent = `
       closeLightbox()
     }
   })
-`
-
-document.head.appendChild(motionScript)
+})
