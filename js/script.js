@@ -244,11 +244,12 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
     const paragraphs = block.querySelectorAll('.project-copy p')
     const hint = block.querySelector('.gallery-hint')
     const gallery = block.querySelectorAll('.gallery-item')
+    const videos = block.querySelectorAll('.gallery-video')
     const widget = block.querySelector('.steam-widget')
     const roadmap = block.querySelector('.roadmap')
 
     const textElements = [title, ...paragraphs].filter(Boolean)
-    const sideElements = [hint, ...gallery, widget].filter(Boolean)
+    const sideElements = [hint, ...gallery, ...videos, widget].filter(Boolean)
 
     if (textElements.length) {
       animate(textElements, {
