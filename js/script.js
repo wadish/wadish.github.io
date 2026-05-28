@@ -14,6 +14,112 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
   const lightboxTitle = document.querySelector('.lightbox-text h3')
   const lightboxDesc = document.querySelector('.lightbox-text p')
   const lightboxClose = document.querySelector('.lightbox-close')
+  const progressPopup = document.querySelector('.progress-popup')
+  const progressPopupPanel = document.querySelector('.progress-popup-panel')
+  const progressPopupClose = document.querySelector('.progress-popup-close')
+
+
+  let progressPopupStarted = false
+  let progressPopupVisible = false
+  let progressPopupTimer
+  let progressPopupPointerId = null
+  let progressPopupStartX = 0
+  let progressPopupStartY = 0
+  let progressPopupCurrentX = 0
+  let progressPopupCurrentY = 0
+  let progressPopupDragging = false
+
+  function resetProgressPopupDrag() {
+    if (!progressPopupPanel) return
+
+    progressPopupPanel.classList.remove('is-dragging')
+    progressPopupPanel.style.transform = ''
+    progressPopupPanel.style.opacity = ''
+  }
+
+  function showProgressPopup() {
+    if (!progressPopup || !progressPopupPanel || progressPopupVisible) return
+
+    progressPopupVisible = true
+    resetProgressPopupDrag()
+    progressPopup.classList.add('is-open')
+    progressPopup.setAttribute('aria-hidden', 'false')
+
+    animate(progressPopup, {
+      opacity: [0, 1],
+      x: [32, 0],
+      y: [-32, 0],
+      scale: [.97, 1]
+    }, {
+      duration: .48,
+      ease: [0.22, 1, 0.36, 1]
+    })
+
+    animate(progressPopupPanel, {
+      filter: ['blur(10px)', 'blur(0px)']
+    }, {
+      duration: .48,
+      ease: [0.22, 1, 0.36, 1]
+    })
+  }
+
+  function hideProgressPopup() {
+    if (!progressPopup || !progressPopupVisible) return
+
+    progressPopupVisible = false
+    clearTimeout(progressPopupTimer)
+
+    animate(progressPopup, {
+      opacity: [1, 0],
+      x: [0, 28],
+      y: [0, -24],
+      scale: [1, .97]
+    }, {
+      duration: .28,
+      ease: [0.22, 1, 0.36, 1]
+    }).finished.then(() => {
+      progressPopup.classList.remove('is-open')
+      progressPopup.setAttribute('aria-hidden', 'true')
+      resetProgressPopupDrag()
+    })
+  }
+
+  function scheduleProgressPopup() {
+    if (progressPopupStarted || !progressPopup) return
+
+    progressPopupStarted = true
+    progressPopupTimer = setTimeout(showProgressPopup, 3000)
+  }
+
+  function finishProgressPopupSwipe() {
+    if (!progressPopupPanel || progressPopupPointerId === null) return
+
+    const shouldClose = Math.abs(progressPopupCurrentX) > 96 || Math.abs(progressPopupCurrentY) > 78
+    const fromX = progressPopupCurrentX
+    const fromY = progressPopupCurrentY
+    const fromOpacity = Math.max(.38, 1 - (Math.abs(fromX) + Math.abs(fromY)) / 320)
+
+    progressPopupPointerId = null
+    progressPopupDragging = false
+    progressPopupPanel.classList.remove('is-dragging')
+    progressPopupPanel.style.transform = ''
+    progressPopupPanel.style.opacity = ''
+
+    if (shouldClose) {
+      hideProgressPopup()
+      return
+    }
+
+    animate(progressPopupPanel, {
+      x: [fromX, 0],
+      y: [fromY, 0],
+      rotate: [fromX * .025, 0],
+      opacity: [fromOpacity, 1]
+    }, {
+      duration: .26,
+      ease: [0.22, 1, 0.36, 1]
+    })
+  }
 
   let introStarted = false
   let numbersStarted = false
@@ -117,6 +223,7 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
     })
 
     setTimeout(animateNumbers, 650)
+    scheduleProgressPopup()
   }
 
   function hidePreloader() {
@@ -247,9 +354,13 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
     const videos = block.querySelectorAll('.gallery-video')
     const widget = block.querySelector('.steam-widget')
     const roadmap = block.querySelector('.roadmap')
+    const socialsHeading = block.querySelector('.socials-heading')
+    const socialLinks = block.querySelectorAll('.social-link')
+    const socialsNote = block.querySelector('.socials-note')
 
     const textElements = [title, ...paragraphs].filter(Boolean)
     const sideElements = [hint, ...gallery, ...videos, widget].filter(Boolean)
+    const socialElements = [socialsHeading, ...socialLinks, socialsNote].filter(Boolean)
 
     if (textElements.length) {
       animate(textElements, {
@@ -274,6 +385,19 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
       }, {
         duration: .74,
         delay: stagger(.065, { startDelay: .14 }),
+        ease: [0.22, 1, 0.36, 1]
+      })
+    }
+
+    if (socialElements.length) {
+      animate(socialElements, {
+        opacity: [0, 1],
+        y: [28, 0],
+        scale: [.985, 1],
+        filter: ['blur(8px)', 'blur(0px)']
+      }, {
+        duration: .74,
+        delay: stagger(.07, { startDelay: .08 }),
         ease: [0.22, 1, 0.36, 1]
       })
     }
@@ -369,6 +493,39 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
   }, {
     passive: true
   })
+
+  if (progressPopupClose) {
+    progressPopupClose.addEventListener('click', hideProgressPopup)
+  }
+
+  if (progressPopupPanel) {
+    progressPopupPanel.addEventListener('pointerdown', event => {
+      if (!progressPopupVisible || event.target.closest('.progress-popup-close')) return
+
+      progressPopupPointerId = event.pointerId
+      progressPopupStartX = event.clientX
+      progressPopupStartY = event.clientY
+      progressPopupCurrentX = 0
+      progressPopupCurrentY = 0
+      progressPopupDragging = true
+      progressPopupPanel.classList.add('is-dragging')
+      progressPopupPanel.setPointerCapture(event.pointerId)
+    })
+
+    progressPopupPanel.addEventListener('pointermove', event => {
+      if (!progressPopupDragging || event.pointerId !== progressPopupPointerId) return
+
+      progressPopupCurrentX = event.clientX - progressPopupStartX
+      progressPopupCurrentY = event.clientY - progressPopupStartY
+
+      const opacity = Math.max(.38, 1 - (Math.abs(progressPopupCurrentX) + Math.abs(progressPopupCurrentY)) / 320)
+      progressPopupPanel.style.transform = `translate(${progressPopupCurrentX}px, ${progressPopupCurrentY}px) rotate(${progressPopupCurrentX * .025}deg)`
+      progressPopupPanel.style.opacity = opacity
+    })
+
+    progressPopupPanel.addEventListener('pointerup', finishProgressPopupSwipe)
+    progressPopupPanel.addEventListener('pointercancel', finishProgressPopupSwipe)
+  }
 
   if (scrollUp) {
     scrollUp.addEventListener('click', () => {
@@ -468,6 +625,7 @@ import("https://cdn.jsdelivr.net/npm/motion@latest/+esm").then(({ animate, stagg
   window.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
       closeLightbox()
+      hideProgressPopup()
     }
   })
 })
